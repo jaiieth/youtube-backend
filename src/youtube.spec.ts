@@ -1,16 +1,26 @@
-import { AdminRoleEnum, PermissionEnum, ReactionEnum } from "@prisma/client";
+import {
+  AdminRoleEnum,
+  BenefitEnum,
+  PermissionEnum,
+  ReactionEnum,
+} from "@prisma/client";
 import {
   addChannelAdmin,
+  addComment,
   addReaction,
   createChannel,
+  createChannelLevel,
   createUser,
+  deleteChannelLevel,
   deleteVideo,
   postVideo,
+  removeComment,
   removeReaction,
   subscribe,
   unsubscribe,
   updateChannelAdmin,
   updateChannelInfo,
+  updateChannelLevel,
   updateUser,
   updateVideo,
 } from "./resolver";
@@ -191,5 +201,62 @@ describe("Youtube", () => {
         }),
       ])
     );
+  });
+
+  test("addComment", async () => {
+    const data = {
+      comment: "Test Comment",
+      userId,
+      videoId: 3,
+      commentToId: 2,
+    };
+    const result = await addComment(data);
+    console.log("addComment", result);
+  });
+
+  test("removeComment", async () => {
+    const data = {
+      commentId: 2,
+    };
+    const result = await removeComment(data);
+    console.log("removeComment", result);
+    expect(result.comment).toBe(null);
+    expect(result.userId).toBe(null);
+  });
+  let channelLevelId: number;
+  test("createChannelLevel", async () => {
+    const data = {
+      level: "หมอก",
+      channelId,
+      benefits: [BenefitEnum.COMMUNITY_VIDEO, BenefitEnum.EARLY_ACCESS],
+    };
+    const result = await createChannelLevel(data);
+    channelLevelId = result.id;
+    console.log("createChannelLevel", result);
+    expect(result.id).toBe(data.channelId);
+  });
+
+  test("updateChannelLevel", async () => {
+    const data = {
+      channelLevelId: 3,
+      level: "อากาศ",
+      benefits: [
+        BenefitEnum.COMMUNITY_VIDEO,
+        BenefitEnum.EARLY_ACCESS,
+        BenefitEnum.EMOTICON,
+      ],
+    };
+    const result = await updateChannelLevel(data);
+    console.log('updateChannelLevel', result)
+  });
+  test("deleteChannelLevel", async () => {
+    const data = {
+      level: "หมอก",
+      channelId,
+    };
+    const result = await deleteChannelLevel(data);
+    console.log("deleteChannelLevel", result);
+    expect(result.level).toBe(data.level);
+    expect(result.channelId).toBe(data.channelId);
   });
 });

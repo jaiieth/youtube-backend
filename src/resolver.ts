@@ -1,14 +1,19 @@
 import { PermissionEnum, PrismaClient } from "@prisma/client";
 import {
   IAddChannelAdmin,
+  IAddComment,
   IAddReaction,
   ICreateChannel,
+  ICreateChannelLevel,
   ICreateUser,
+  IDeleteChannelLevel,
   IDeleteVideo,
   IPostVideo,
+  IRemoveComment,
   ISubscribe,
   IUpdateChannelAdmin,
   IUpdateChannelInfo,
+  IUpdateChannelLevel,
   IUpdateUser,
   IUpdateVideo,
 } from "./interface";
@@ -254,11 +259,13 @@ export const addReaction = (args: IAddReaction) => {
     select: {
       id: true,
       reactions: {
-        include: { user: {
-          select: {
-            id:true,
-          }
-        } },
+        include: {
+          user: {
+            select: {
+              id: true,
+            },
+          },
+        },
       },
     },
   });
@@ -282,6 +289,113 @@ export const removeReaction = (args: IAddReaction) => {
     select: {
       id: true,
       reactions: true,
+    },
+  });
+};
+
+export const addComment = (args: IAddComment) => {
+  return prisma.video.update({
+    where: {
+      id: args.videoId,
+    },
+    data: {
+      comments: {
+        create: {
+          comment: args.comment,
+          user: {
+            connect: {
+              id: args.userId,
+            },
+          },
+          ...(args.commentToId && {
+            commentTo: {
+              connect: {
+                id: args.commentToId || undefined,
+              },
+            },
+          }),
+        },
+      },
+    },
+  });
+};
+
+export const removeComment = (args: IRemoveComment) => {
+  return prisma.comment.update({
+    where: {
+      id: args.commentId,
+    },
+    data: {
+      user: {
+        disconnect: true,
+      },
+      comment: null,
+    },
+  });
+};
+
+export const createChannelLevel = (args: ICreateChannelLevel) => {
+  return prisma.channel.update({
+    where: { id: args.channelId },
+    data: {
+      channelLevels: {
+        create: {
+          level: args.level,
+          benefits: {
+            connectOrCreate: args.benefits?.map((benefit) => ({
+              where: {
+                benefit,
+              },
+              create: {
+                benefit,
+              },
+            })),
+          },
+        },
+      },
+    },
+  });
+};
+
+export const updateChannelLevel = async (args: IUpdateChannelLevel) => {
+  const previousBenefits = await prisma.channelLevel.findFirstOrThrow({
+    where: {
+      id: args.channelLevelId,
+    },
+    select: {
+      benefits: true,
+    },
+  });
+  return prisma.channelLevel.update({
+    where: {
+      id: args.channelLevelId,
+    },
+    data: {
+      level: args.level || undefined,
+      benefits: {
+        disconnect: previousBenefits.benefits.map((data) => ({
+          benefit: data.benefit,
+        })),
+        connectOrCreate: args.benefits?.map((benefit) => ({
+          where: {
+            benefit,
+          },
+          create: {
+            benefit,
+          },
+        })),
+      },
+    },
+  });
+};
+
+export const deleteChannelLevel = (args: IDeleteChannelLevel) => {
+  return prisma.channelLevel.delete({
+    where: {
+      level_channelId: {
+        level: args.level,
+        channelId: args.channelId,
+      },
     },
   });
 };

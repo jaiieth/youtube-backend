@@ -1,4 +1,9 @@
-import { AdminRoleEnum, PermissionEnum, ReactionEnum } from "@prisma/client";
+import {
+  AdminRoleEnum,
+  BenefitEnum,
+  PermissionEnum,
+  ReactionEnum,
+} from "@prisma/client";
 import * as t from "io-ts";
 import { optional, strict } from "io-ts-extra";
 
@@ -122,3 +127,60 @@ export const addReactionCodec = t.type({
 });
 
 export interface IAddReaction extends t.TypeOf<typeof addReactionCodec> {}
+
+export const addCommentCodec = strict({
+  userId: t.number,
+  videoId: t.number,
+  comment: t.string,
+  commentToId: optional(t.number),
+});
+
+export interface IAddComment extends t.TypeOf<typeof addCommentCodec> {}
+
+export const removeCommentCodec = t.type({
+  commentId: t.number,
+});
+
+export interface IRemoveComment extends t.TypeOf<typeof removeCommentCodec> {}
+
+export const createChannelLevelCodec = strict({
+  level: t.string,
+  channelId: t.number,
+  benefits: optional(
+    t.array(
+      t.keyof({
+        [BenefitEnum.COMMUNITY_VIDEO]: null,
+        [BenefitEnum.EARLY_ACCESS]: null,
+        [BenefitEnum.EMOTICON]: null,
+      })
+    )
+  ),
+});
+
+export interface ICreateChannelLevel
+  extends t.TypeOf<typeof createChannelLevelCodec> {}
+
+export const deleteChannelLevelCodec = t.type({
+  channelId: t.number,
+  level: t.string,
+});
+
+export interface IDeleteChannelLevel
+  extends t.TypeOf<typeof deleteChannelLevelCodec> {}
+
+export const updateChannelLevelCodec = strict({
+  channelLevelId: t.number,
+  level: optional(t.string),
+  benefits: optional(
+    t.array(
+      t.keyof({
+        [BenefitEnum.COMMUNITY_VIDEO]: null,
+        [BenefitEnum.EARLY_ACCESS]: null,
+        [BenefitEnum.EMOTICON]: null,
+      })
+    )
+  ),
+});
+
+export interface IUpdateChannelLevel
+  extends t.TypeOf<typeof updateChannelLevelCodec> {}
