@@ -1,0 +1,139 @@
+model User {
+  id               Int                 @id @default(autoincrement())
+  name             String
+  email            String              @unique
+  profilePicture   String?
+  profilePictureId Int?                @unique
+  subscribings     ChannelSubscriber[]
+  ownedChannels    ChannelAdmin[]
+  comments         Comment[]
+  reactions        Reaction[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+model Channel {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  profilePicture    String?
+  profilePictureId  Int?                @unique
+  channelSubscriber ChannelSubscriber[]
+  ownedBy           ChannelAdmin[]
+  videos            Video[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model ChannelSubscriber {
+  id            Int            @id @default(autoincrement())
+  users         User[]
+  channelLevels ChannelLevel[]
+  Channel       Channel        @relation(fields: [channelId], references: [id])
+  channelId     Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ChannelLevel {
+  id                  Int               @id @default(autoincrement())
+  level               String
+  benefits            Benefit[]
+  channelSubscriber   ChannelSubscriber @relation(fields: [channelSubscriberId], references: [id])
+  channelSubscriberId Int
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+model Benefit {
+  id            Int            @id @default(autoincrement())
+  benefit       BenefitEnum
+  channelLevels ChannelLevel[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+enum BenefitEnum {
+  EMOTICON
+  EARLY_ACCESS
+  COMMUNITY_VIDEO
+}
+
+model ChannelAdmin {
+  id          Int           @id @default(autoincrement())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  roleName    AdminRoleEnum
+  permissions Permission[]
+  channel     Channel       @relation(fields: [channelId], references: [id])
+  channelId   Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum AdminRoleEnum {
+  Admin
+  Editor
+  Creator
+}
+
+model Permission {
+  id           Int            @id @default(autoincrement())
+  ChannelAdmin ChannelAdmin[]
+  permission   PermissionEnum
+}
+
+enum PermissionEnum {
+  CREATE
+  EDIT
+  POST
+  DELETE
+}
+
+model Video {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String
+  channel     Channel    @relation(fields: [channelId], references: [id])
+  channelId   Int
+  comments    Comment[]
+  reactions   Reaction[]
+  reactionId  Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Reaction {
+  id      Int          @id @default(autoincrement())
+  type    ReactionEnum
+  video   Video        @relation(fields: [videoId], references: [id])
+  videoId Int
+  user    User[]
+}
+
+enum ReactionEnum {
+  LIKE
+  DISLIKE
+}
+
+model Comment {
+  id          Int       @id @default(autoincrement())
+  comment     String
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      Int
+  video       Video     @relation(fields: [videoId], references: [id])
+  videoId     Int
+  commentBy   Comment[] @relation("CommentRelation")
+  commentTo   Comment?  @relation("CommentRelation", fields: [commentToId], references: [id])
+  commentToId Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_YOUTUBE")
+}
