@@ -1,4 +1,4 @@
-import { AdminRoleEnum, PermissionEnum } from "@prisma/client";
+import { AdminRoleEnum, PermissionEnum, ReactionEnum } from "@prisma/client";
 import * as t from "io-ts";
 import { optional, strict } from "io-ts-extra";
 
@@ -111,3 +111,14 @@ export const deleteVideoCodec = t.type({
 });
 
 export interface IDeleteVideo extends t.TypeOf<typeof deleteVideoCodec> {}
+
+export const addReactionCodec = t.type({
+  videoId: t.number,
+  userId: t.number,
+  type: t.keyof({
+    [ReactionEnum.DISLIKE]: null,
+    [ReactionEnum.LIKE]: null,
+  }),
+});
+
+export interface IAddReaction extends t.TypeOf<typeof addReactionCodec> {}

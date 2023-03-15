@@ -1,10 +1,12 @@
-import { AdminRoleEnum, PermissionEnum } from "@prisma/client";
+import { AdminRoleEnum, PermissionEnum, ReactionEnum } from "@prisma/client";
 import {
   addChannelAdmin,
+  addReaction,
   createChannel,
   createUser,
   deleteVideo,
   postVideo,
+  removeReaction,
   subscribe,
   unsubscribe,
   updateChannelAdmin,
@@ -148,5 +150,46 @@ describe("Youtube", () => {
     const result = await deleteVideo({ videoId });
     console.log("deleteVideo", result);
     expect(result.id).toBe(videoId);
+  });
+  let reactionType: string;
+  test("addReaction", async () => {
+    const data = {
+      videoId: 2,
+      userId,
+      type: [ReactionEnum.DISLIKE, ReactionEnum.LIKE][
+        Math.floor(Math.random() * 2)
+      ],
+    };
+    reactionType = data.type;
+    const result = await addReaction(data);
+    console.log("addReaction", result);
+    expect(result.reactions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          videoId: 2,
+          user: expect.arrayContaining([
+            expect.objectContaining({ id: userId }),
+          ]),
+        }),
+      ])
+    );
+  });
+
+  test("removeReaction", async () => {
+    const data = {
+      userId: 34,
+      type: reactionType === "LIKE" ? ReactionEnum.LIKE : ReactionEnum.DISLIKE,
+      videoId: 2,
+    };
+    const result = await removeReaction(data);
+    console.log("removeReaction", result);
+    expect(result.id).toBe(34);
+    expect(result.reactions).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          user: expect.objectContaining({ id: 34 }),
+        }),
+      ])
+    );
   });
 });

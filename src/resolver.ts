@@ -1,6 +1,7 @@
 import { PermissionEnum, PrismaClient } from "@prisma/client";
 import {
   IAddChannelAdmin,
+  IAddReaction,
   ICreateChannel,
   ICreateUser,
   IDeleteVideo,
@@ -214,6 +215,73 @@ export const deleteVideo = (args: IDeleteVideo) => {
   return prisma.video.delete({
     where: {
       id: args.videoId,
+    },
+  });
+};
+
+export const addReaction = (args: IAddReaction) => {
+  return prisma.video.update({
+    where: {
+      id: args.videoId,
+    },
+    data: {
+      reactions: {
+        upsert: {
+          where: {
+            videoId_type: {
+              videoId: args.videoId,
+              type: args.type,
+            },
+          },
+          create: {
+            type: args.type,
+            user: {
+              connect: {
+                id: args.userId,
+              },
+            },
+          },
+          update: {
+            user: {
+              connect: {
+                id: args.userId,
+              },
+            },
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      reactions: {
+        include: { user: {
+          select: {
+            id:true,
+          }
+        } },
+      },
+    },
+  });
+};
+
+export const removeReaction = (args: IAddReaction) => {
+  return prisma.user.update({
+    where: {
+      id: args.userId,
+    },
+    data: {
+      reactions: {
+        disconnect: {
+          videoId_type: {
+            videoId: args.videoId,
+            type: args.type,
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      reactions: true,
     },
   });
 };
