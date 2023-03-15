@@ -9,7 +9,7 @@
     "prisma:migrate": "yarn prisma migrate dev --name init --schema prisma/schema.prisma",
     "prisma:generate": "yarn pnpify prisma generate --schema=prisma/schema.prisma",
     "test": "jest --verbose",
-    "test:twitter": "jest -- src/TwitterAPI"
+    "test:yt": "jest -- src/"
   },
   "dependencies": {
     "@prisma/client": "^4.11.0",
