@@ -1,3 +1,4 @@
+import { AdminRoleEnum, PermissionEnum } from "@prisma/client";
 import * as t from "io-ts";
 import { optional, strict } from "io-ts-extra";
 
@@ -36,3 +37,77 @@ export const updateChannelInfoCodec = strict({
 
 export interface IUpdateChannelInfo
   extends t.TypeOf<typeof updateChannelInfoCodec> {}
+
+export const addChannelAdminCodec = strict({
+  channelId: t.number,
+  userId: t.number,
+  roleName: t.keyof({
+    [AdminRoleEnum.ADMIN]: null,
+    [AdminRoleEnum.CREATOR]: null,
+    [AdminRoleEnum.EDITOR]: null,
+  }),
+  permissions: t.array(
+    t.keyof({
+      [PermissionEnum.CREATE]: null,
+      [PermissionEnum.DELETE]: null,
+      [PermissionEnum.EDIT]: null,
+      [PermissionEnum.POST]: null,
+    })
+  ),
+});
+
+export interface IAddChannelAdmin
+  extends t.TypeOf<typeof addChannelAdminCodec> {}
+
+export const updateChannelAdminCodec = strict({
+  channelAdminId: t.number,
+  roleName: optional(
+    t.keyof({
+      [AdminRoleEnum.ADMIN]: null,
+      [AdminRoleEnum.CREATOR]: null,
+      [AdminRoleEnum.EDITOR]: null,
+    })
+  ),
+  permissions: optional(
+    t.array(
+      t.keyof({
+        [PermissionEnum.CREATE]: null,
+        [PermissionEnum.DELETE]: null,
+        [PermissionEnum.EDIT]: null,
+        [PermissionEnum.POST]: null,
+      })
+    )
+  ),
+});
+
+export interface IUpdateChannelAdmin
+  extends t.TypeOf<typeof updateChannelAdminCodec> {}
+
+export const subscribeCodec = t.type({
+  userId: t.number,
+  channelId: t.number,
+});
+
+export interface ISubscribe extends t.TypeOf<typeof subscribeCodec> {}
+
+export const postVideoCodec = strict({
+  channelId: t.number,
+  name: t.string,
+  description: optional(t.string),
+});
+
+export interface IPostVideo extends t.TypeOf<typeof postVideoCodec> {}
+
+export const updateVideoCodec = strict({
+  videoId: t.number,
+  name: optional(t.string),
+  description: optional(t.string),
+});
+
+export interface IUpdateVideo extends t.TypeOf<typeof updateVideoCodec> {}
+
+export const deleteVideoCodec = t.type({
+  videoId: t.number,
+});
+
+export interface IDeleteVideo extends t.TypeOf<typeof deleteVideoCodec> {}
