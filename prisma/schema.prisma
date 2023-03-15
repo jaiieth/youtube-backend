@@ -13,23 +13,35 @@ model User {
 }
 
 model Channel {
-  id                Int                 @id @default(autoincrement())
-  name              String              @unique
+  id                Int                @id @default(autoincrement())
+  name              String             @unique
   profilePicture    String?
   about             String?
-  channelSubscriber ChannelSubscriber[]
+  channelSubscriber ChannelSubscriber?
   ownedBy           ChannelAdmin[]
   videos            Video[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model ChannelAdmin {
+  id          Int           @id @default(autoincrement())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  roleName    AdminRoleEnum @default(ADMIN)
+  permissions Permission[]
+  channel     Channel       @relation(fields: [channelId], references: [id])
+  channelId   Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }
 
 model ChannelSubscriber {
   id            Int            @id @default(autoincrement())
   users         User[]
   channelLevels ChannelLevel[]
-  Channel       Channel        @relation(fields: [channelId], references: [id])
-  channelId     Int
+  channel       Channel        @relation(fields: [channelId], references: [id])
+  channelId     Int            @unique
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -58,22 +70,10 @@ enum BenefitEnum {
   COMMUNITY_VIDEO
 }
 
-model ChannelAdmin {
-  id          Int           @id @default(autoincrement())
-  user        User          @relation(fields: [userId], references: [id])
-  userId      Int
-  roleName    AdminRoleEnum @default(Admin)
-  permissions Permission[]
-  channel     Channel       @relation(fields: [channelId], references: [id])
-  channelId   Int
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-}
-
 enum AdminRoleEnum {
-  Admin
-  Editor
-  Creator
+  ADMIN
+  EDITOR
+  CREATOR
 }
 
 model Permission {
@@ -92,12 +92,11 @@ enum PermissionEnum {
 model Video {
   id          Int        @id @default(autoincrement())
   name        String
-  description String
+  description String?
   channel     Channel    @relation(fields: [channelId], references: [id])
   channelId   Int
   comments    Comment[]
   reactions   Reaction[]
-  reactionId  Int
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
