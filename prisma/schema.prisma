@@ -107,6 +107,8 @@ model Reaction {
   video   Video        @relation(fields: [videoId], references: [id])
   videoId Int
   user    User[]
+
+  @@unique([videoId, type])
 }
 
 enum ReactionEnum {
